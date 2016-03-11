@@ -56,7 +56,7 @@ public:
     // Sets
     void            SetPosition (TVector3 pos) {position = pos;};
     void            SetPosition (Double_t x , Double_t y, Double_t z) {SetPosition (TVector3(x,y,z));};
-    TVector3   GeneratePosition ( TF1* , float cutoff , TH2F * hHODensityXY );
+    TVector3   GeneratePosition ( TH2F * Histo2GenerateFrom );
     
     
     void                 Print ();

@@ -4,10 +4,9 @@
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-TC12nucleus::TC12nucleus(int i, int fNbins, int fNfills , TF1 * frho, TH2F * fhHODensityXY){
+TC12nucleus::TC12nucleus(int i, int fNbins, TF1 * frho, TH2F * fhHODensityXY){
     
     Nbins           = fNbins;
-    Nfills          = fNfills;
     rho             = frho; // density function for the positioning of the nucleons
     hHODensityXY    = fhHODensityXY;
     
@@ -24,7 +23,6 @@ TC12nucleus::TC12nucleus(int i, int fNbins, int fNfills , TF1 * frho, TH2F * fhH
     hDens_p     = new TH3F(Form("hDens_protonsC12"),"one C12 nucleus protons"
                            ,Nbins,-C12cutoff,C12cutoff ,Nbins,-C12cutoff,C12cutoff ,Nbins,-C12cutoff,C12cutoff);
     GenerateNucleons();
-    FillDensityHist(0.01);
 }
 
 
@@ -37,7 +35,7 @@ void TC12nucleus::GenerateNucleons(){
         //        SHOW(++generation);
         for ( int i = 0 ; i < Nprotons + Nneutrons ; i++ ) {
             nucleons[i] = new TClassicParticle((i<Nprotons)?"proton":"neutron",i);
-            float r = (nucleons[i] -> GeneratePosition( rho , C12cutoff-0*Nradius , hHODensityXY )).Mag();
+            float r = (nucleons[i] -> GeneratePosition( hHODensityXY )).Mag();
             if (i < Nprotons)
                 hpr -> Fill(r);
             else
@@ -148,7 +146,7 @@ TF1 * TC12nucleus::DrawDensityFunction(){
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void TC12nucleus::FillDensityHist(float NucleonRadius){
+void TC12nucleus::FillDensityHist(int Nfills , float NucleonRadius){
     for ( int i = 0 ; i < A ; i++ ){
         rand.SetSeed(A);
         TVector3 * pos = new TVector3(nucleons[i]->GetPosition().X(), nucleons[i]->GetPosition().Y(), nucleons[i]->GetPosition().Z());

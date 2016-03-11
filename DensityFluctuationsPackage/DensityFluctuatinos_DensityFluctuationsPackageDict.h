@@ -33,7 +33,6 @@ extern void G__set_cpp_environmentDensityFluctuatinos_DensityFluctuationsPackage
 #include "TMemberInspector.h"
 #include "TC12nucleus.h"
 #include "TClassicParticle.h"
-#include "sample.h"
 #include <algorithm>
 namespace std { }
 using namespace std;
@@ -174,6 +173,5 @@ extern G__linked_taginfo G__DensityFluctuatinos_DensityFluctuationsPackageDictLN
 extern G__linked_taginfo G__DensityFluctuatinos_DensityFluctuationsPackageDictLN_reverse_iteratorlEvectorlETLorentzVectorcOallocatorlETLorentzVectorgRsPgRcLcLiteratorgR;
 extern G__linked_taginfo G__DensityFluctuatinos_DensityFluctuationsPackageDictLN_TCalculations;
 extern G__linked_taginfo G__DensityFluctuatinos_DensityFluctuationsPackageDictLN_TC12nucleus;
-extern G__linked_taginfo G__DensityFluctuatinos_DensityFluctuationsPackageDictLN_sample;
 
 /* STUB derived class for protected member access */

@@ -1,8 +1,7 @@
 // Feb-18, 2016
-#define r0 1.25     // [fm]
+
 #define A 12
-
-
+#define r0 1.25     // [fm]
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -14,7 +13,8 @@ Double_t C12cutoff      = 1.5*C12radius;
 
 int     Nnuclei;
 const int Nbins         = 100;
-int     Nfills          = 1000;
+int     Nfills          = 1e4;
+float   NucleonRadius   = 1;    // [fm]
 float   r2chA           = 6.10 ;
 float   r2chp           = 0.7714 ;
 float   C               = sqrt((r2chA - r2chp) /(5./2. - 4./A));
@@ -31,12 +31,11 @@ Double_t TotMass = 0 , TotVol = 0 , density , TotDensity;
 bool BinsCounted[Nbins][Nbins][Nbins] = {false};
 TF1  * rhoHO                = new TF1("rhoHO" ,Form("%f * (1 + %f * (x**2)) * exp( - x**2 / %f )"
                                             ,Cfactor , A_4_6_C2 , pow(C,2)) , 0 , 2*C12radius);
-TF1  * rhoJacobian          = rhoHO;//new TF1("rhoJacobian" ,Form("(%f * (1 + %f * (x**2)) * exp( - x**2 / %f ))*(x**2)"
-                                            ,Cfactor , A_4_6_C2 , pow(C,2)) , 0 , 2*C12radius);
-TH1F * hr           ,   * hnr       ,    * hpr;
-TH3F * hDensity     ,   * hDens_n   ,   * hDens_p ;
-TH3F * hHODensity   ,   * hFluctuations;
-TH2F * hDensityXY   ,   * hHODensityXY ,   * hFluctuationsXY;
+TF1  * rhoJacobian          = rhoHO;
+TH1F * hr           ,   * hnr           ,    * hpr;
+TH3F * hDensity     ,   * hDens_n       ,   * hDens_p ;
+TH3F * hHODensity   ,   * hFluctuations ;
+TH2F * hDensityXY   ,   * hHODensityXY  ,   * hFluctuationsXY;
 TGraph * density_vs_distance;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -77,13 +76,14 @@ void MultipleC12NucleiDistributions(const int fNnuclei = 50,bool DoGenerate = fa
         for (int i = 0 ; i < Nnuclei ; i++) {
             if (i % (Nnuclei/10) == 0)  Printf("\t[%.0f%%]  ",100*(float)i/Nnuclei);
             
-            C12     = new TC12nucleus(i,Nbins,Nfills,rhoJacobian,hHODensityXY);
+            C12 = new TC12nucleus(i,Nbins,rhoJacobian,hHODensityXY);
             if (DoDrawNuclei){
                 c   -> cd(i+1);
                 C12 -> DrawNucleus();
                 C12 -> DrawDensityFunction();
                 C12 -> DrawDensityHist();
             }
+            C12 -> FillDensityHist(Nfills,NucleonRadius);
             C12 -> AccumulateHistograms(hDens_n,hDens_p,hDensity,hnr,hpr,hr);
             OutTree -> Fill();
         }
@@ -338,7 +338,7 @@ void DrawDensityHistograms(TH3F * hDens_n,TH3F * hDens_p,TH3F * hDensity,TH1F * 
     
     if (DoPlot2DXY) {
         
-        TCanvas * c = plot -> CreateCanvas("DensityFluctuations2DXY","Divide",3,1);
+        TCanvas * c = plot -> CreateCanvas("DensityFluctuations2DXY","Divide",4,2);
         c -> cd(1);
         plot -> SetFrame(hHODensity,"HO density","x [fm]" , "y [fm]" , 1 , 1);
         hHODensityXY -> Scale(A / hHODensityXY->Integral());
@@ -352,6 +352,22 @@ void DrawDensityHistograms(TH3F * hDens_n,TH3F * hDens_p,TH3F * hDensity,TH1F * 
         hFluctuationsXY -> Add( hHODensityXY    , -1 );
         plot -> SetFrame(hFluctuationsXY,"density fluctuations","x [fm]" , "y [fm]" , 1 , 1);
         hFluctuationsXY -> Draw("contz");
+        c -> cd(5);
+        TH1F * hHODensityXproj = (TH1F *) hHODensityXY -> ProjectionX("hHODensityXproj",Nbins/2,Nbins/2+1);
+        plot -> SetFrame(hHODensityXproj,"x axis","x [fm]" , "" , 46 , 46);
+        hHODensityXproj -> Draw();
+        c -> cd(6);
+        TH1F * hDensityXproj = (TH1F *) hDensityXY -> ProjectionX("hDensityXproj",Nbins/2,Nbins/2+1);
+        plot -> SetFrame(hDensityXproj,"x axis","x [fm]" , "" , 38 , 38);
+        hDensityXproj -> Draw();
+        c -> cd(7);
+        TH1F * hFluctuationsXproj = (TH1F *) hFluctuationsXY -> ProjectionX("hFluctuationsXproj",Nbins/2,Nbins/2+1);
+        plot -> SetFrame(hFluctuationsXproj,"x axis","x [fm]" , "" , 38 , 38);
+        hFluctuationsXproj -> Draw();
+        c -> cd(8);
+        hHODensityXproj -> Draw();
+        hDensityXproj -> Draw("same");
+
     }
 
     if (DoPlot3D) {

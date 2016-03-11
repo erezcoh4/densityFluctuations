@@ -39,7 +39,7 @@ public:
     
     // globals
     static const        Int_t   Nprotons = 6    ,  Nneutrons = 6 , A = Nprotons + Nneutrons;
-    Int_t               Nbins       ,   Nfills;
+    Int_t               Nbins       ;
     Double_t            C12radius   , C12cutoff ,   x   ,   y   ,   z;
     TClassicParticle    * nucleons[A];
     TCalculations       * calc;
@@ -50,7 +50,7 @@ public:
     TH2F                * hHODensityXY;
     
     
-    TC12nucleus             (int,int,int,TF1*,TH2F*);
+    TC12nucleus             (int,int,TF1*,TH2F*);
     ~TC12nucleus            (){};
     
     
@@ -62,11 +62,10 @@ public:
     bool   CheckForOverlaps ();
     void        DrawNucleus ();
     TF1 *DrawDensityFunction();
-    void    FillDensityHist (float NucleonRadius = 1);
+    void    FillDensityHist (int fNfills = 1 , float NucleonRadius = 1);
     TCanvas *DrawDensityHist ();
     void AccumulateHistograms(TH3F *,TH3F *,TH3F *,TH1F *,TH1F *,TH1F *);
-    
-//    Double_t     GetDensity ();
+ 
 };
 
 
