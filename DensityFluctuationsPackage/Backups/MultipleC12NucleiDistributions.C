@@ -46,6 +46,7 @@ double ** Density2Dxy      = new double *[Nbins];
 double *** Density3Darray  = new double **[Nbins];
 Double_t TotMass = 0 , TotVol = 0 , density , TotDensity;
 bool BinsCounted[Nbins][Nbins][Nbins] = {false};
+//TH1F * hr           ,   * hnr           ,    * hpr;
 TH3F * hDensity     ,   * hDens_n       ,   * hDens_p ;
 TH3F * hHODensity   ,   * hFluctuations ;
 TH2F * hDensityXY   ,   * hHODensityXY  ,   * hFluctuationsXY;
@@ -76,17 +77,32 @@ void MultipleC12NucleiDistributions(const int fNnuclei = 50,bool DoGenerate = fa
     if(DoGenerate){
         TFile * OutFile = new TFile("C12nuclei.root","recreate");
         TTree * OutTree = new TTree("C12nuclei","C12 nuclei");
+//        hr   = new TH1F("hr","r",Nbins,0,C12cutoff);
+//        hpr  = new TH1F("hpr","p-r",Nbins,0,C12cutoff);
+//        hnr  = new TH1F("hnr","n-r",Nbins,0,C12cutoff);
+//        hDensity = new TH3F("hDensityNucleus","one C12 nucleus"
+//                                   ,Nbins,-C12cutoff,C12cutoff ,Nbins,-C12cutoff,C12cutoff ,Nbins,-C12cutoff,C12cutoff);
+//        hDens_n  = new TH3F("hDens_neutrons","one C12 nucleus neutrons"
+//                                   ,Nbins,-C12cutoff,C12cutoff ,Nbins,-C12cutoff,C12cutoff ,Nbins,-C12cutoff,C12cutoff);
+//        hDens_p  = new TH3F("hDens_protons","one C12 nucleus protons"
+//                                   ,Nbins,-C12cutoff,C12cutoff ,Nbins,-C12cutoff,C12cutoff ,Nbins,-C12cutoff,C12cutoff);
+        
         OutTree -> Branch("protons"         , &protons       ); // protons positions in [fm]
         OutTree -> Branch("neutrons"        , &neutrons      ); // neutrons positions
         OutTree -> Branch("nucleons"        , &nucleons      ); // all nucleons positions
 
         
         for (int i = 0 ; i < Nnuclei ; i++) {
-            if (i)/* % (Nnuclei/10) == 0) */ Printf("\t[%.0f%%]  ",100*(float)i/Nnuclei);
+            if (i % (Nnuclei/10) == 0)  Printf("\t[%.0f%%]  ",100*(float)i/Nnuclei);
             
+//            C12 = new TC12nucleus(i,Nbins,hHODensityXY);
             C12 = new TC12nucleus(i,hHODensityXY);
-            protons     = C12 -> Get_protons_positions();
-            neutrons    = C12 -> Get_neutrons_positions();
+            
+//            C12 -> FillDensityHist(Nfills,NucleonRadius);
+//            C12 -> AccumulateHistograms(hDens_n,hDens_p,hDensity,hnr,hpr,hr);
+
+            //            protons     = C12 -> Get_protons_positions();
+            //            neutrons    = C12 -> Get_neutrons_positions();
             nucleons    = C12 -> Get_nucleons_positions();
             OutTree -> Fill();
         }
@@ -110,6 +126,14 @@ void MultipleC12NucleiDistributions(const int fNnuclei = 50,bool DoGenerate = fa
         bool DoDrawHistograms       = true;
 
         TPlots * ana = new TPlots("C12nuclei.root","C12nuclei");
+//        File        = new TFile("C12nuclei.root");
+//        Tree        = (TTree*)File->Get("C12nuclei");
+//        hr          = (TH1F*)File->Get("hr");
+//        hnr         = (TH1F*)File->Get("hnr");
+//        hpr         = (TH1F*)File->Get("hpr");
+//        hDensity    = (TH3F*)File->Get("hDensityNucleus");
+//        hDens_n     = (TH3F*)File->Get("hDens_neutrons");
+//        hDens_p     = (TH3F*)File->Get("hDens_protons");
         hDensity    = ana -> H3("nucleons.x()","nucleons.y()","nucleons.z()","","goff"
                                  ,Nbins,-C12cutoff,C12cutoff,Nbins,-C12cutoff,C12cutoff,Nbins,-C12cutoff,C12cutoff);
 
@@ -244,6 +268,74 @@ void MoveDensityHistoToArray(){
     }
 }
 
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void CalculateDensityAsAFunctionOfr(const int Nr = 10, bool SphCoorIntegration = false){
+    // calcualte the density of hDensity in Nr radial points in the range 0->C12cutoff
+    
+    if (SphCoorIntegration) {
+        Double_t r[Nr]  ,   rho[Nr] ,   dr  = C12cutoff/Nr; //[fm]
+        
+        for (int i = 0 ; i < Nr ; i++ ){
+            Double_t rIn  = i * dr , rOut = (i+1)*dr;
+            r[i]    = (i+0.5)*dr;
+            rho[i]  = h3DensityBetween_rIn_rOut(hDensity,rIn,rOut,true);
+        }
+        density_vs_distance = new TGraph( Nr , r , rho );
+        plot -> SetFrame(density_vs_distance,"","r [fm]","#rho(r) [ 1 / fm ^{3} ]",46,21,0.5);
+    }
+    else {
+        TotMass     = A;
+        TotVol      = (4.*TMath::Pi()/3.)*pow(C12radius,3);
+        TotDensity  = TotMass / TotVol;
+    }
+}
+
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+Double_t h3DensityBetween_rIn_rOut(TH3F * h3 , Double_t rIn , Double_t rOut, bool DoPrint = false){ // density of the histogram in a giver radius
+    float mass = 0  ,   vol = 0     ,   dr = (rOut-rIn)/50.    ,   dtheta = 0.05    ,   dphi = 0.05  , density;
+    for (float r = rIn; r < rOut ; r += dr){
+        for (float theta = 0; theta < TMath::Pi() ; theta += dtheta){
+            for (float phi = 0; phi < 2.*TMath::Pi() ; phi += dphi){
+                if(r < C12radius)
+                    vol += dphi * sin(theta) * dtheta * pow(r,2) * dr ;
+//                //                mass += dphi * sin(theta) * dtheta * pow(r,2) * dr * local_density(h3,r,theta,phi);
+                mass += local_density(h3,r,theta,phi);
+            }
+        }
+    }
+    TotVol      += vol;
+    mass        = mass / (Nnuclei * Nfills) ; //[nucleons]
+    TotMass     += mass;
+    density     = (vol>0) ? mass / vol : 0;
+    TotDensity  = TotMass / TotVol;
+    if (DoPrint)
+        Printf("%.2f<r<%.2f, vol=%.2f fm³ (tot %.2f fm³), mass=%.2f nucleons (Tot %.1f), density=%.3f /fm³ (Tot %.3f), HO density = %.3f /fm³"
+               ,rIn,rOut,vol,TotVol,mass,TotMass,density,TotDensity,HODensity(0.5*(rOut+rIn)));
+    return density;
+}
+
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+Double_t local_density(TH3F * h3 , Double_t r , Double_t theta , Double_t phi){
+    float local_density = 0;
+    // returns the local density of h3 in r , theta, phi
+    Double_t    x = r * sin(theta) * cos(phi)       ,   y = r * sin(theta) * sin(phi)       ,   z = r * cos(theta) ;
+    int         BinX = h3->GetXaxis()->FindBin(x)   ,   BinY = h3->GetYaxis()->FindBin(y)   ,   BinZ = h3->GetXaxis()->FindBin(z);
+    if (BinX < Nbins && BinY < Nbins && BinZ < Nbins) {
+//        cout<<"Density3Darray["<<BinX<<"]["<<BinY<<"]["<<BinZ<<"] = "<<Density3Darray[BinX][BinY][BinZ]<<endl;
+        if (Density3Darray[BinX][BinY][BinZ] > 0) {
+            if (BinsCounted[BinX][BinY][BinZ]==false) {
+                BinsCounted[BinX][BinY][BinZ] = true;
+                local_density = Density3Darray[BinX][BinY][BinZ];
+            }
+        }
+    }
+    return local_density;
+}
 
 
 

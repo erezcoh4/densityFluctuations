@@ -39,19 +39,20 @@ public:
     
     // globals
     static const        Int_t   Nprotons = 6    ,  Nneutrons = 6 , A = Nprotons + Nneutrons;
+    Int_t               Nbins       ;
     Double_t            C12radius   , C12cutoff ,   x   ,   y   ,   z;
     TClassicParticle    * nucleons[A];
     TCalculations       * calc;
-    TRandom3            * rand;
+//    TH3F                * hDensity  ,   * hDens_n   , * hDens_p;
+//    TH1F                * hr        ,   * hnr       , * hpr;
+    TRandom3            rand;
+    
+    std::vector<TVector3> protonsPos , neutronsPos , nucleonsPos;
+    
     TH2F                * hHODensityXY;
     
     
-    Int_t               Nnuc;
-    TVector3            position;
-    std::vector<TVector3> protonsPos , neutronsPos , nucleonsPos;
-    
-    
-    
+//    TC12nucleus             (int,int,TH2F*);
     TC12nucleus             (int,TH2F*);
     ~TC12nucleus            (){};
     
@@ -60,20 +61,16 @@ public:
     // methods....
     
     void   GenerateNucleons ();
-    bool        CoreOverlap ();
-    bool     BadSoftOverlap ();
-    TString    overlap_type (TClassicParticle * , TClassicParticle *);
-    float      overlap_dist (TClassicParticle * , TClassicParticle *);
-    
-    
-    
+    float           Overlap (TClassicParticle * particle1 , TClassicParticle * particle2);
+    bool   CheckForOverlaps ();
     void        DrawNucleus ();
-
+//    void    FillDensityHist (int fNfills = 1 , float NucleonRadius = 1);
+//    TCanvas *DrawDensityHist ();
+//    void AccumulateHistograms(TH3F *,TH3F *,TH3F *,TH1F *,TH1F *,TH1F *);
+    
     
     
     // GETs
-    std::vector<TVector3> Get_protons_positions() { return protonsPos; };
-    std::vector<TVector3> Get_neutrons_positions(){ return neutronsPos; };
     std::vector<TVector3> Get_nucleons_positions(){ return nucleonsPos; };
  
 };
