@@ -12,7 +12,7 @@
 #define r2d 180./3.14159265358979323846
 #define coreR 0.5 // fm
 #define softR 1.0 // fm
-
+#define DensityMax 0.193 
 
 using namespace std;
 
@@ -29,7 +29,7 @@ private:
     TTimeStamp  * ts;
     TRandom3    * rand;
 
-    
+    Double_t    w;
     
 public:
     
@@ -54,9 +54,12 @@ public:
     
     
     // Sets
-    void            SetPosition (TVector3 pos) {position = pos;};
-    void            SetPosition (Double_t x , Double_t y, Double_t z) {SetPosition (TVector3(x,y,z));};
-    TVector3   GeneratePosition ( TH2F * Histo2GenerateFrom );
+    TVector3        SetPosition (TVector3 pos) {position = pos; return pos;};
+    TVector3        SetPosition (Double_t x , Double_t y, Double_t z) {return SetPosition (TVector3(x,y,z));};
+    
+    TVector3   GeneratePosition ( TH1F * );
+    TVector3   GeneratePosition ( float );
+    
     
     
     void                 Print ();

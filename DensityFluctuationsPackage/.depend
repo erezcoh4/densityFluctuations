@@ -396,7 +396,8 @@ TC12nucleus.o: TC12nucleus.cxx TC12nucleus.h \
   /Users/erezcohen/root-v5-34/include/root/Math/AdaptiveIntegratorMultiDim.h \
   /Users/erezcohen/root-v5-34/include/root/TF2.h \
   /Users/erezcohen/root-v5-34/include/root/TF3.h \
-  /Users/erezcohen/larlite/UserDev/MySoftware/MySoftwarePackage/TCalculations.h
+  /Users/erezcohen/larlite/UserDev/mySoftware/MySoftwarePackage/TCalculations.h \
+  /Users/erezcohen/larlite/UserDev/mySoftware/MySoftwarePackage/TPlots.cxx
 TClassicParticle.o: TClassicParticle.cxx TClassicParticle.h \
   /Users/erezcohen/larlite/UserDev/MySoftware/MySoftwarePackage/TPlots.h \
   /usr/include/stdio.h /usr/include/sys/cdefs.h \

@@ -18,7 +18,8 @@
 #include "TF1.h"
 #include "TF2.h"
 #include "TF3.h"
-#include "/Users/erezcohen/larlite/UserDev/MySoftware/MySoftwarePackage/TCalculations.h"
+#include "MySoftwarePackage/TPlots.h"
+#include "MySoftwarePackage/TCalculations.h"
 
 
 using namespace std;
@@ -39,11 +40,14 @@ public:
     
     // globals
     static const        Int_t   Nprotons = 6    ,  Nneutrons = 6 , A = Nprotons + Nneutrons;
-    Double_t            C12radius   , C12cutoff ,   x   ,   y   ,   z;
+    Double_t            C12radius   , C12cutoff ,   x   ,   y   ,   z   , rNucleons[A];
     TClassicParticle    * nucleons[A];
+    TPlots              * plot;
     TCalculations       * calc;
     TRandom3            * rand;
-    TH2F                * hHODensityXY;
+//    TH3F                * Histo2GenerateFrom;
+    TH1F                * Histo2GenerateFrom;
+    bool                QuietMode;
     
     
     Int_t               Nnuc;
@@ -52,19 +56,22 @@ public:
     
     
     
-    TC12nucleus             (int,TH2F*);
+    //    TH2F                * hHODensityXY;
+//    TC12nucleus             (int, TH3F *, float, float,bool fQuietMode = true);
+    TC12nucleus             (int, TH1F *, TH1F *, float, float,bool fQuietMode = true);
     ~TC12nucleus            (){};
     
     
     
-    // methods....
+    // methods
     
     void   GenerateNucleons ();
-    bool        CoreOverlap ();
-    bool     BadSoftOverlap ();
+    bool        CoreOverlap (int);
+    bool     BadSoftOverlap (int);
     TString    overlap_type (TClassicParticle * , TClassicParticle *);
     float      overlap_dist (TClassicParticle * , TClassicParticle *);
-    
+    void        FillhFilled (TH1F *);
+ 
     
     
     void        DrawNucleus ();
