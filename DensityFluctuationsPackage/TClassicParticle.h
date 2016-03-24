@@ -29,7 +29,6 @@ private:
     TTimeStamp  * ts;
     TRandom3    * rand;
 
-    Double_t    w;
     
 public:
     

@@ -26,13 +26,14 @@ void TC12nucleus::GenerateNucleons(){
     // while cheking that there is no core overlap ( < 0.5 fm)
     // and the soft overlaps ( < 1 fm ) correspond with SRC data - 20% for np and 5% for pp,nn
     
-    //    for ( Nnuc = 0 ; Nnuc < A ; Nnuc++ )
-    //        rNucleons[Nnuc] = Histo2GenerateFrom -> GetRandom();
+//    for ( Nnuc = 0 ; Nnuc < A ; Nnuc++ ){
+//            rNucleons[Nnuc] = Histo2GenerateFrom -> GetRandom();
+//    }
     for ( Nnuc = 0 ; Nnuc < A ; Nnuc++ ) {
         nucleons[Nnuc] = new TClassicParticle((Nnuc < Nprotons)?"proton":"neutron",Nnuc);
         position = nucleons[Nnuc] -> GeneratePosition( Histo2GenerateFrom );
-        //        position = nucleons[Nnuc] -> GeneratePosition( rNucleons[Nnuc] ); // force this nucleon to be in this radius
-        //                plot -> PrintOut3Vector(  position , Form("position of nucleon %i",Nnuc) );
+//                position = nucleons[Nnuc] -> GeneratePosition( rNucleons[Nnuc] ); // force this nucleon to be in this radius
+//                        plot -> PrintOut3Vector(  position , Form("position of nucleon %i",Nnuc) );
         if (CoreOverlap(Nnuc)){
             Nnuc --;
             continue;
@@ -57,8 +58,8 @@ bool TC12nucleus::CoreOverlap(int i){
     for ( int j = 0 ; j < i ; j++ ) {
         float overlap_distance = overlap_dist(nucleons[i],nucleons[j]);
         if (overlap_distance < coreR) {
-            if(!QuietMode) Printf("core overlap of %s %d and %s %d! must re-generate nucleon %d"
-                   ,nucleons[i] -> GetName().Data(),nucleons[i] -> GetID(),nucleons[j] -> GetName().Data(),nucleons[j] -> GetID(),i);
+            if(!QuietMode) Printf("core overlap of %s %d (%.1f,%.1f,%.1f at r=%.1f) & %s %d (%.1f,%.1f,%.1f at r=%.1f)! re-generate nucleon %d"
+                   ,nucleons[i] -> GetName().Data(),nucleons[i] -> GetID(),nucleons[i] -> GetPosition().X(),nucleons[i] -> GetPosition().Y(),nucleons[i] -> GetPosition().Z(),nucleons[i] -> GetPosition().Mag(),nucleons[j] -> GetName().Data(),nucleons[j] -> GetID(),nucleons[j] -> GetPosition().X(),nucleons[j] -> GetPosition().Y(),nucleons[j] -> GetPosition().Z(),nucleons[j] -> GetPosition().Mag(),i);
             return true;
         }
     }

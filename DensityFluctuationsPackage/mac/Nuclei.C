@@ -1,23 +1,21 @@
 // Feb-18, 2016
 #define A 12
 #define r0 1.25     // [fm]
-
+#include <vector>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-const int Nbins         = 50;
-TPlots * plot           = new TPlots();
+bool QuietMode          = true;
+const int Nbins         = 30;
+TPlots plot;
 bool DoDrawNuclei       = false;
+
 
 Double_t C12radius      = r0 * TMath::Power(A, 1./3.);
 Double_t C12cutoff      = 1.5*C12radius;
 Double_t C12Min         = 0.;
 
-int colorHO             = 46;
-int colorFilled         = 1;
-int colorGEN            = 20;
-int colorDENISTY        = 38;
-int Nnuclei;
-int nucleus;
+int colorHO             = 46    ,   colorFilled = 1 , colorGEN = 20  , colorDENISTY = 38;
+int Nnuclei , nucleus;
 
 float ScaleFactor       = 0;
 TRandom3 * rand         = new TRandom3();
@@ -80,162 +78,159 @@ void Nuclei(const int fNnuclei = 0,bool DoAnalysis = true){
     
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
     if(Nnuclei > 0){
+        
         TFile * OutFile = new TFile("C12nuclei.root","recreate");
         TTree * OutTree = new TTree("C12nuclei","C12 nuclei");
         OutTree -> Branch("protons"         , &protons       ); // protons positions in [fm]
         OutTree -> Branch("neutrons"        , &neutrons      ); // neutrons positions
         OutTree -> Branch("nucleons"        , &nucleons      ); // all nucleons positions
-
-        GetHODistribution();
-
         
-            
+        GetHODistribution();
+        
+        
+        
         for (nucleus = 0 ; nucleus < Nnuclei ; nucleus++) {
-//            if (nucleus % (Nnuclei/10) == 0) Printf("\t[%.0f%%]  ",100*(float)nucleus/Nnuclei); //  if(i)
+            if (nucleus%(Nnuclei/10)==0) plot.PrintPercentStr((float)nucleus/Nnuclei);
             GetHistoToGenFrom();
             
-            C12 = new TC12nucleus(nucleus , hHisGENradial , hFilled , C12radius ,  C12cutoff);
+            C12 = new TC12nucleus(nucleus , hHisGENradial , hFilled , C12radius ,  C12cutoff , QuietMode );
             //            C12 = new TC12nucleus(i , hHisto2GenFrom , C12radius ,  C12cutoff);
             nucleons = C12 -> Get_nucleons_positions();
             OutTree -> Fill();
-
+            
         }
         OutFile -> Write();
         OutFile -> Close();
         Printf("done generating....");
     }
     
-  
+    
     
     
     //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
     if(DoAnalysis){
-
-        bool DoDrawHistograms       = true;
-        TPlots * ana    = new TPlots("C12nuclei.root","C12nuclei");
-     
+        
+        TPlots * ana = new TPlots("C12nuclei.root","C12nuclei");
+        
         //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-        if (DoDrawHistograms) {
-            
+        
             bool DoPlot1D   = true;
             bool DoPlot3D   = false;
             
             if(DoPlot1D){
-
+                
                 hDENSITYradial  = ana -> H1("nucleons.Mag()","","goff",Nbins,C12Min,C12cutoff);
                 
                 hDENSITYradial  -> Scale(hHOradial -> Integral() / hDENSITYradial -> Integral());
                 hFilled         -> Scale(hHOradial -> Integral() / hFilled -> Integral() );
-            
-                plot -> SetFrame(hHOradial,"HO radial","r [fm]" , "" , colorHO , colorHO);
-                plot -> SetFrame(hFilled,"filled","r [fm]" , "" , colorFilled , colorFilled);
-                plot -> SetFrame(hHisGENradial,"generated radial","r [fm]" , "" , colorGEN , colorGEN);
-                plot -> SetFrame(hDENSITYradial,"density radial","r [fm]" , "" , colorDENISTY , colorDENISTY);
-
-                TCanvas * c1d   = plot -> CreateCanvas("c1d");
-                hHOradial       -> Draw();
-                hFilled         -> Draw("same");
-                hHisGENradial   -> Draw("same");
+                
+                plot.SetFrame(hHOradial,"HO radial","r [fm]" , "" , colorHO , colorHO);
+                plot.SetFrame(hFilled,"filled","r [fm]" , "" , colorFilled , colorFilled);
+                plot.SetFrame(hHisGENradial,"generated radial","r [fm]" , "" , colorGEN , colorGEN);
+                plot.SetFrame(hDENSITYradial,"density radial","r [fm]" , "" , colorDENISTY , colorDENISTY);
+                
+                TCanvas * c1d   = plot.CreateCanvas("c1d","Divide",1,2);
+                c1d -> cd(1);
+                hHisGENradial   -> Draw();
+                c1d -> cd(2);
+                hFilled         -> Draw();
+                hHOradial       -> Draw("same");
                 hDENSITYradial  -> Draw("same");
-                hHOradial       -> Print();
-                hHisGENradial   -> Print();
-                hDENSITYradial  -> Print();
                 
             }
- 
+            
             if(DoPlot3D){
                 TH3F * hDensity = ana -> H3("nucleons.x()","nucleons.y()","nucleons.z()","","goff"
-                                       ,Nbins,-C12cutoff,C12cutoff,Nbins,-C12cutoff,C12cutoff,Nbins,-C12cutoff,C12cutoff)    ;
-            
-            
-            TCanvas * c = plot -> CreateCanvas("DensityFluctuations3D","Divide",3,4);
-            
-            // the resulting density histogram
-            c -> cd(1);
-            plot -> SetFrame(hDensity,"density","x [fm]" , "y [fm]" , "z [fm]", 1 , 20 , 0.5);
-            hDensity -> Scale(1. / hDensity->Integral());
+                                            ,Nbins,-C12cutoff,C12cutoff,Nbins,-C12cutoff,C12cutoff,Nbins,-C12cutoff,C12cutoff)    ;
+                
+                
+                TCanvas * c = plot.CreateCanvas("DensityFluctuations3D","Divide",3,4);
+                
+                // the resulting density histogram
+                c -> cd(1);
+                plot.SetFrame(hDensity,"density","x [fm]" , "y [fm]" , "z [fm]", 1 , 20 , 0.5);
+                hDensity -> Scale(1. / hDensity->Integral());
                 Printf("hDensity = %f",hDensity->Integral());
-            //        hDensity -> Draw();
-            TH2F * hDensityXYproj = (TH2F *) hDensity -> Project3D("xy");
-            hDensityXYproj -> Draw("colz");
-            
-            c -> cd(4);
-            TH1F * hDensityXproj = (TH1F *) hDensity -> ProjectionX("hDensityXproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
-            plot -> SetFrame(hDensityXproj,"x axis","x [fm]" , "" , 38 , 38);
-            hDensityXproj -> Draw();
-            
-            c -> cd(7);
-            TH1F * hDensityYproj = (TH1F *) hDensity -> ProjectionY("hDensityYproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
-            plot -> SetFrame(hDensityYproj,"y axis","y [fm]" , "" , 38 , 38);
-            hDensityYproj -> Draw();
-            
-            c -> cd(10);
-            TH1F * hDensityZproj = (TH1F *) hDensity -> ProjectionZ("hDensityZproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
-            plot -> SetFrame(hDensityZproj,"z axis","z [fm]" , "" , 38 , 38);
-            hDensityZproj -> Draw();
-            
-            
-            
-            // HO histogram (with the density layed upon it)
-            c -> cd(2);
-            plot -> SetFrame(hHODensity,"HO density","x [fm]" , "y [fm]" , "z [fm]" , 1 , 20 , 0.5);
-            hHODensity -> Scale(1.  / hHODensity->Integral());
+                //        hDensity -> Draw();
+                TH2F * hDensityXYproj = (TH2F *) hDensity -> Project3D("xy");
+                hDensityXYproj -> Draw("colz");
+                
+                c -> cd(4);
+                TH1F * hDensityXproj = (TH1F *) hDensity -> ProjectionX("hDensityXproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
+                plot.SetFrame(hDensityXproj,"x axis","x [fm]" , "" , 38 , 38);
+                hDensityXproj -> Draw();
+                
+                c -> cd(7);
+                TH1F * hDensityYproj = (TH1F *) hDensity -> ProjectionY("hDensityYproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
+                plot.SetFrame(hDensityYproj,"y axis","y [fm]" , "" , 38 , 38);
+                hDensityYproj -> Draw();
+                
+                c -> cd(10);
+                TH1F * hDensityZproj = (TH1F *) hDensity -> ProjectionZ("hDensityZproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
+                plot.SetFrame(hDensityZproj,"z axis","z [fm]" , "" , 38 , 38);
+                hDensityZproj -> Draw();
+                
+                
+                
+                // HO histogram (with the density layed upon it)
+                c -> cd(2);
+                plot.SetFrame(hHODensity,"HO density","x [fm]" , "y [fm]" , "z [fm]" , 1 , 20 , 0.5);
+                hHODensity -> Scale(1.  / hHODensity->Integral());
                 Printf("hHODensity = %f",hHODensity->Integral());
-            //        hHODensity -> Draw();
-            TH2F * hHODensityXYproj = (TH2F *) hHODensity -> Project3D("xy");
-            hHODensityXYproj -> Draw("colz");
-            
-            c -> cd(5);
-            TH1F * hHODensityXproj = (TH1F *) hHODensity -> ProjectionX("hHODensityXproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
-            plot -> SetFrame(hHODensityXproj,"x axis","x [fm]" , "" , 46 , 46);
-            hHODensityXproj -> Draw();
-            hDensityXproj -> Draw("same");
-            
-            c -> cd(8);
-            TH1F * hHODensityYproj = (TH1F *) hHODensity -> ProjectionY("hHODensityYproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
-            plot -> SetFrame(hHODensityYproj,"y axis","y [fm]" , "" , 46 , 46);
-            hHODensityYproj -> Draw();
-            hDensityYproj -> Draw("same");
-            
-            c -> cd(11);
-            TH1F * hHODensityZproj = (TH1F *) hHODensity -> ProjectionZ("hHODensityZproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
-            plot -> SetFrame(hHODensityZproj,"z axis","z [fm]" , "" , 46 , 46);
-            hHODensityZproj -> Draw();
-            hDensityZproj -> Draw("same");
-            
-            
-            
-            // fluctuations histogram
-            c -> cd(3);
-            for (int BinX = 0 ; BinX < Nbins ; BinX++ )
+                //        hHODensity -> Draw();
+                TH2F * hHODensityXYproj = (TH2F *) hHODensity -> Project3D("xy");
+                hHODensityXYproj -> Draw("colz");
+                
+                c -> cd(5);
+                TH1F * hHODensityXproj = (TH1F *) hHODensity -> ProjectionX("hHODensityXproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
+                plot.SetFrame(hHODensityXproj,"x axis","x [fm]" , "" , 46 , 46);
+                hHODensityXproj -> Draw();
+                hDensityXproj -> Draw("same");
+                
+                c -> cd(8);
+                TH1F * hHODensityYproj = (TH1F *) hHODensity -> ProjectionY("hHODensityYproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
+                plot.SetFrame(hHODensityYproj,"y axis","y [fm]" , "" , 46 , 46);
+                hHODensityYproj -> Draw();
+                hDensityYproj -> Draw("same");
+                
+                c -> cd(11);
+                TH1F * hHODensityZproj = (TH1F *) hHODensity -> ProjectionZ("hHODensityZproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
+                plot.SetFrame(hHODensityZproj,"z axis","z [fm]" , "" , 46 , 46);
+                hHODensityZproj -> Draw();
+                hDensityZproj -> Draw("same");
+                
+                
+                
+                // fluctuations histogram
+                c -> cd(3);
+                for (int BinX = 0 ; BinX < Nbins ; BinX++ )
                 for (int BinY = 0 ; BinY < Nbins ; BinY++ )
-                    for (int BinZ = 0 ; BinZ < Nbins ; BinZ++ )
-                        hFluctuations -> SetBinContent(BinX,BinY,BinZ,fabs(hDensity->GetBinContent(BinX,BinY,BinZ) - hHODensity->GetBinContent(BinX,BinY,BinZ)));
-            hFluctuations -> Scale(A / hFluctuations->Integral());
-            //        hFluctuations -> Draw();
-            plot -> SetFrame(hFluctuations,"fluctuations","x [fm]" , "y [fm]" , "z [fm]", 1 , 20 , 0.5);
-            TH2F * hFluctuationsXYproj = (TH2F *) hFluctuations -> Project3D("xy");
-            hFluctuationsXYproj -> Draw("contz");
-            
-            
-            c -> cd(6);
-            TH1F * hFluctuationsXproj = (TH1F *) hFluctuations -> ProjectionX("hFluctuationsXproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
-            plot -> SetFrame(hFluctuationsXproj,"x axis","x [fm]" , "" , 1 , 1);
-            hFluctuationsXproj -> Draw();
-            
-            
-            hDensity            -> Print();
-            hDensityXYproj      -> Print();
-            hDensityXproj       -> Print();
-            hHODensity          -> Print();
-            hHODensityXYproj    -> Print();
-            hHODensityXproj     -> Print();
+                for (int BinZ = 0 ; BinZ < Nbins ; BinZ++ )
+                hFluctuations -> SetBinContent(BinX,BinY,BinZ,fabs(hDensity->GetBinContent(BinX,BinY,BinZ) - hHODensity->GetBinContent(BinX,BinY,BinZ)));
+                hFluctuations -> Scale(A / hFluctuations->Integral());
+                //        hFluctuations -> Draw();
+                plot.SetFrame(hFluctuations,"fluctuations","x [fm]" , "y [fm]" , "z [fm]", 1 , 20 , 0.5);
+                TH2F * hFluctuationsXYproj = (TH2F *) hFluctuations -> Project3D("xy");
+                hFluctuationsXYproj -> Draw("contz");
+                
+                
+                c -> cd(6);
+                TH1F * hFluctuationsXproj = (TH1F *) hFluctuations -> ProjectionX("hFluctuationsXproj",Nbins/2-1,Nbins/2+1,Nbins/2-1,Nbins/2+1);
+                plot.SetFrame(hFluctuationsXproj,"x axis","x [fm]" , "" , 1 , 1);
+                hFluctuationsXproj -> Draw();
+                
+                
+                hDensity            -> Print();
+                hDensityXYproj      -> Print();
+                hDensityXproj       -> Print();
+                hHODensity          -> Print();
+                hHODensityXYproj    -> Print();
+                hHODensityXproj     -> Print();
             }
-         }
-
-            
         
-    
+        
+        
+        
     }
     
 }
@@ -247,18 +242,46 @@ void Nuclei(const int fNnuclei = 0,bool DoAnalysis = true){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void GetHistoToGenFrom(){
-
-    if (nucleus > 0)
-        ScaleFactor =  hHOradial -> Integral()  / hFilled -> Integral() ;
-//    ScaleFactor = (1./Nnuclei) * ( 1./(A * nucleus) ) *  ( hHOradial-> Integral()  / hFilled->Integral() );//hHOradial->GetEntries()
     
-    Printf("ScaleFactor=%f",ScaleFactor);
-    for(int bin = 0 ; bin < Nbins ; bin++){
-//        hHisGENradial -> SetBinContent(bin , TMath::Max(hHOradial->GetBinContent(bin) - ScaleFactor * hFilled -> GetBinContent(bin) , 0.0));
-        hHisGENradial -> SetBinContent(bin , hHOradial->GetBinContent(bin));
-//        Printf("bin = %d , hHOradial->GetBinContent(bin)=%f, hFilled -> GetBinContent(bin) = %f , ScaleFactor * hFilled -> GetBinContent(bin) = %f",bin,hHOradial->GetBinContent(bin),hFilled -> GetBinContent(bin) , ScaleFactor * hFilled -> GetBinContent(bin));
+    bool DoHistogramOnMyOwn = false;
+    if (!DoHistogramOnMyOwn) {
+        //    if (nucleus > 0) {
+        //        ScaleFactor =  hHOradial -> Integral()  / hFilled -> Integral() ;
+        //    //    ScaleFactor = (1./Nnuclei) * ( 1./(A * nucleus) ) *  ( hHOradial-> Integral()  / hFilled->Integral() );//hHOradial->GetEntries()
+        //        Printf("ScaleFactor=%f",ScaleFactor);
+        //    }
+       float r;
+        for(int bin = 0 ; bin < Nbins ; bin++){
+            r = hHOradial -> GetXaxis() -> GetBinCenter(bin);
+            //        hHisGENradial -> SetBinContent(bin , TMath::Max(hHOradial->GetBinContent(bin) - ScaleFactor * hFilled -> GetBinContent(bin) , 0.0));
+            hHisGENradial -> SetBinContent(bin , Gaussian_rho( r , 0.1 , 300 ) + Gaussian_rho( r , 0.15 , 250 ) + Gaussian_rho( r , 0.2 , 150 )  + Gaussian_rho( r , 0.3 , 100 ) + Gaussian_rho( r , 0.5 , 1) + HO_rho ( r ) );
+            //        hHisGENradial -> SetBinContent(bin , hHOradial->GetBinContent(bin));
+            //        Printf("bin = %d , hHOradial->GetBinContent(bin)=%f, hFilled -> GetBinContent(bin) = %f , ScaleFactor * hFilled -> GetBinContent(bin) = %f",bin,hHOradial->GetBinContent(bin),hFilled -> GetBinContent(bin) , ScaleFactor * hFilled -> GetBinContent(bin));
+        }
     }
-//    new TCanvas(); hHisGENradial -> Draw();
+    if (DoHistogramOnMyOwn) {
+        std::vector<float> bin_content;
+        bin_content.push_back( 100 );
+        bin_content.push_back( 50 );
+        bin_content.push_back( 40 );
+        bin_content.push_back( 30 );
+        bin_content.push_back( 40 );
+        bin_content.push_back( 30 );
+        bin_content.push_back( 20 );
+        bin_content.push_back( 0.5 );
+        bin_content.push_back( .4 );
+        bin_content.push_back( .3 );
+        bin_content.push_back( .2 );
+        bin_content.push_back( .1 );
+        for(int bin = 0 ; bin < Nbins ; bin++){
+            if (bin < bin_content.size()) {
+                hHisGENradial -> SetBinContent( bin , bin_content.at(bin) );
+            }
+            else {
+                hHisGENradial -> SetBinContent( bin , HO_rho ( hHOradial -> GetXaxis() -> GetBinCenter(bin) ) );
+            }
+        }
+    }
 }
 
 
@@ -269,11 +292,8 @@ void GetHODistribution(){
         float bin_content = HO_rho( hHOradial -> GetXaxis() -> GetBinCenter(bin) );
         hHOradial -> SetBinContent( bin , bin_content );
         if ( 0 < bin_content &&  bin_content < Minimum_bin_content )
-            Minimum_bin_content = bin_content;
+        Minimum_bin_content = bin_content;
     }
-    Printf("hHOradial = %f", hHOradial-> Integral());
-//    hHOradial -> Scale(Nnuclei*A / hHOradial-> Integral());
-//    hHOradial -> Scale(1./Minimum_bin_content);
     
     
     for (int BinX = 0 ; BinX < Nbins ; BinX++ ) {
@@ -286,18 +306,18 @@ void GetHODistribution(){
             }
         }
     }
-
+    
 }
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void HO_rho(float r){
+float HO_rho(float r){
     return (Cfactor*(1 + A_4_6_C2 * (r*r)) * exp( - r*r / (C*C) ) );
 }
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void Gaussian_rho(float r,float sigma, float NormFact = 1){
+float Gaussian_rho(float r,float sigma, float NormFact = 1){
     return  NormFact * (exp( - (r*r) / (2*sigma*sigma) ) );
 }
 
