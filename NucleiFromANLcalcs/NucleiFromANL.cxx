@@ -14,10 +14,10 @@ Nucleus(nucleus( "B" , 10 )){
     SetNpairs();
     InitOutputTree();
 
+    analysis = new TAnalysis();
     rand = new TRandom3((int)1000*gRandom->Uniform());
     
 }
-
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void NucleiFromANL::SetNpairs(){
@@ -30,11 +30,12 @@ void NucleiFromANL::SetNpairs(){
 }
 
 
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void NucleiFromANL::SimulateNucleusSnapshot(){
     
     GenerateNucleus();
-    calcANL2bodyWeights();
+//    calcANL2bodyWeights();
     OutTree -> Fill();
     
 }
@@ -43,14 +44,18 @@ void NucleiFromANL::SimulateNucleusSnapshot(){
 void NucleiFromANL::InitOutputTree(){
     
     // Integer branches
-    OutTree -> Branch("Nucleus"           , &Nucleus);
+    OutTree -> Branch("Nucleus"         , &Nucleus); // nucleus
     
     OutTree -> Branch("ANLppKS"         , &ANLppKS          , "ANLppKS/F");
     OutTree -> Branch("ANLnnKS"         , &ANLnnKS          , "ANLnnKS/F");
     OutTree -> Branch("ANLpnKS"         , &ANLpnKS          , "ANLpnKS/F");
     OutTree -> Branch("ANL2BodyWeight"  , &ANL2BodyWeight   , "ANL2BodyWeight/F");
 
-    if (debug>0) std::cout << "Initialized Output Tree NucleiFromANL on " << OutTree -> GetTitle() << std::endl;
+    OutTree -> Branch("ppDistances"     , &ppDistances); // std::vector<Float_t>
+    OutTree -> Branch("nnDistances"     , &nnDistances); // std::vector<Float_t>
+    OutTree -> Branch("pnDistances"     , &pnDistances); // std::vector<Float_t>
+    
+    if (debug>0) cout << "Initialized Output Tree NucleiFromANL on " << OutTree->GetTitle() << endl;
 }
 
 
@@ -63,7 +68,7 @@ void NucleiFromANL::GenerateNucleus(){
         
         TVector3 position = ANLnucloenPosition();
         TString type = (i < 5) ? "proton" : "neutron";
-        N = nucleon( type , position );
+        N = nucleon( i , type , position );
         Nucleus.AddNucleon( N );
     }
     
@@ -81,43 +86,48 @@ TVector3 NucleiFromANL::ANLnucloenPosition(){
 Float_t NucleiFromANL::calcANL2bodyWeights(){
     // calculate weight according to ANL two-body density distributions (pp / nn /pn)
     // return a weighted average of the three weights (by the number of pairs of each type)
+
+    ppDistances = Nucleus.GetDistancesBetweenNucleons( Nucleus.protons  );
+    if (debug > 3) SHOWstdVector(ppDistances);
+    nnDistances = Nucleus.GetDistancesBetweenNucleons( Nucleus.neutrons );
+    if (debug > 3) SHOWstdVector(nnDistances);
+    pnDistances = Nucleus.GetDistancesBetweenNucleons( Nucleus.protons , Nucleus.neutrons );
+    if (debug > 3) SHOWstdVector(pnDistances);
+
     
-    ANLppKS = KSscore2bodyHomogene ( Nucleus.protons , ANLppDensity );
-    ANLnnKS = KSscore2bodyHomogene ( Nucleus.neutrons, ANLppDensity );
-    ANLpnKS = KSscore2bodyHeterogene ( Nucleus.protons , Nucleus.neutrons , ANLppDensity );
+    ANLppKS = KSscore2body ( ppDistances , ANLppDensity );
+    ANLnnKS = KSscore2body ( nnDistances , ANLnnDensity );
+    ANLpnKS = KSscore2body ( pnDistances , ANLpnDensity );
     
+    // weighted average
     ANL2BodyWeight = (ANLppKS*NppPairs + ANLnnKS*NnnPairs + ANLpnKS*NpnPairs)/Npairs;
 }
 
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-Float_t NucleiFromANL::KSscore2bodyHomogene( std::vector<nucleon> nucelons ,
-                                            TH1F * ANLhisto ){
-    // build a histogram of distances between the same type of nucleons nucleons
-    // and compute the consistencey of this histogram with ANLhisto
-    // according to the Kolomogorov Smirnov test
-    
+Float_t NucleiFromANL::KSscore2body( std::vector<Float_t> NNdistances, TH1F * ANLhisto ){
+    // (Kolomogorov) test the consistency of NN-distances with ANL calculation
+    // working in binned version since the ANL data is binned
+    TH1F * hNNdistances = new TH1F("hNNdistances","NNdistances",ANLhisto->GetNbinsX(),
+                                   ANLhisto->GetXaxis()->GetXmin(),ANLhisto->GetXaxis()->GetXmax());
+    for (auto dNN: NNdistances) {
+        hNNdistances -> Fill(dNN);
+    }
+    Float_t KSscore = analysis -> BinnedKSTest( hNNdistances , ANLhisto);
+    delete hNNdistances;
+    return KSscore;
 }
 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-Float_t NucleiFromANL::KSscore2bodyHeterogene( std::vector<nucleon> nucelons1 ,
-                                              std::vector<nucleon> nucelons2 ,
-                                              TH1F * histo ){
-    // build a histogram of distances between nucleons of type 1 and nucleons of type 2
-    // and compute the consistencey of this histogram with ANLhisto
-    // according to the Kolomogorov Smirnov test
-    
-}
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void NucleiFromANL::Print(){
     
+    SHOW( OutTree->GetEntries() );
     Nucleus.Print();
     SHOW3( ANLppKS , ANLnnKS , ANLpnKS );
-    SHOW( OutTree->GetEntries() );
+    SHOW( ANL2BodyWeight );
     EndEventBlock();
     
 }

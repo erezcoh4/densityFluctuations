@@ -55,7 +55,7 @@ namespace ROOT {
       ::NucleiFromANL *ptr = 0;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(::NucleiFromANL));
       static ::ROOT::TGenericClassInfo 
-         instance("NucleiFromANL", "NucleiFromANL.h", 26,
+         instance("NucleiFromANL", "NucleiFromANL.h", 27,
                   typeid(::NucleiFromANL), DefineBehavior(ptr, ptr),
                   &NucleiFromANL_Dictionary, isa_proxy, 4,
                   sizeof(::NucleiFromANL) );
@@ -96,6 +96,69 @@ namespace ROOT {
       ((current_t*)p)->~current_t();
    }
 } // end of namespace ROOT for class ::NucleiFromANL
+
+namespace ROOT {
+   static TClass *vectorlEfloatgR_Dictionary();
+   static void vectorlEfloatgR_TClassManip(TClass*);
+   static void *new_vectorlEfloatgR(void *p = 0);
+   static void *newArray_vectorlEfloatgR(Long_t size, void *p);
+   static void delete_vectorlEfloatgR(void *p);
+   static void deleteArray_vectorlEfloatgR(void *p);
+   static void destruct_vectorlEfloatgR(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const vector<float>*)
+   {
+      vector<float> *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<float>));
+      static ::ROOT::TGenericClassInfo 
+         instance("vector<float>", -2, "vector", 457,
+                  typeid(vector<float>), DefineBehavior(ptr, ptr),
+                  &vectorlEfloatgR_Dictionary, isa_proxy, 0,
+                  sizeof(vector<float>) );
+      instance.SetNew(&new_vectorlEfloatgR);
+      instance.SetNewArray(&newArray_vectorlEfloatgR);
+      instance.SetDelete(&delete_vectorlEfloatgR);
+      instance.SetDeleteArray(&deleteArray_vectorlEfloatgR);
+      instance.SetDestructor(&destruct_vectorlEfloatgR);
+      instance.AdoptCollectionProxyInfo(TCollectionProxyInfo::Generate(TCollectionProxyInfo::Pushback< vector<float> >()));
+      return &instance;
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_(Init) = GenerateInitInstanceLocal((const vector<float>*)0x0); R__UseDummy(_R__UNIQUE_(Init));
+
+   // Dictionary for non-ClassDef classes
+   static TClass *vectorlEfloatgR_Dictionary() {
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<float>*)0x0)->GetClass();
+      vectorlEfloatgR_TClassManip(theClass);
+   return theClass;
+   }
+
+   static void vectorlEfloatgR_TClassManip(TClass* ){
+   }
+
+} // end of namespace ROOT
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_vectorlEfloatgR(void *p) {
+      return  p ? ::new((::ROOT::TOperatorNewHelper*)p) vector<float> : new vector<float>;
+   }
+   static void *newArray_vectorlEfloatgR(Long_t nElements, void *p) {
+      return p ? ::new((::ROOT::TOperatorNewHelper*)p) vector<float>[nElements] : new vector<float>[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_vectorlEfloatgR(void *p) {
+      delete ((vector<float>*)p);
+   }
+   static void deleteArray_vectorlEfloatgR(void *p) {
+      delete [] ((vector<float>*)p);
+   }
+   static void destruct_vectorlEfloatgR(void *p) {
+      typedef vector<float> current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class vector<float>
 
 namespace ROOT {
    static TClass *vectorlETVector3gR_Dictionary();

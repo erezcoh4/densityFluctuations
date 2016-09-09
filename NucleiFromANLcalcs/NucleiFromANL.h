@@ -17,6 +17,7 @@
 #include <iostream>
 #include "nucleon.h"
 #include "nucleus.h"
+#include "TAnalysis.h"
 
 /**
    \class NucleiFromANL
@@ -28,33 +29,40 @@ class NucleiFromANL{
 public:
 
     /// Default constructor
-    NucleiFromANL (TTree * fOutTree , Int_t fdebug );
+    NucleiFromANL ( TTree * fOutTree , Int_t fdebug );
     ~NucleiFromANL(){}
     void            InitOutputTree ();
 
     // setters
     void                SetOutTree (TTree* fOutTree) {OutTree = fOutTree;};
     void                  SetDebug (int d)    {debug = d;};
-
+    void                 SetNpairs ();
     // running
     void   SimulateNucleusSnapshot ();
-    void             GenerateNucleus ();
+    void           GenerateNucleus ();
     TVector3    ANLnucloenPosition ();
     Float_t    calcANL2bodyWeights ();
-    Float_t   KSscore2bodyHomogene ( std::vector<nucleon> , TH1F * );
-    Float_t KSscore2bodyHeterogene ( std::vector<nucleon> , std::vector<nucleon> , TH1F * );
+    Float_t           KSscore2body ( std::vector<Float_t> , TH1F * );
     void                     Print ();
     
     
     
-    Int_t   debug;
+    Int_t       debug;
+    Int_t       Npairs , NppPairs , NnnPairs , NpnPairs;
+
+    nucleus     Nucleus;
+    nucleon     N;
+    TAnalysis   * analysis;
     
-    nucleus Nucleus;
-    nucleon N;
+    TTree       * OutTree;
     
     
-    TTree * OutTree;
-    Float_t ANLppKS , ANLnnKS , ANLpnKS;
+    Float_t     ANLppKS , ANLnnKS   , ANLpnKS   , ANL2BodyWeight;
+    std::vector<Float_t> ppDistances , nnDistances , pnDistances;
+
+    
+    
+    
     TRandom3 * rand;
     
     
