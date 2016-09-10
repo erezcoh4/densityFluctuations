@@ -33,7 +33,6 @@ void NucleiFromANL::SetNpairs(){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void NucleiFromANL::SimulateNucleusSnapshot(){
-    
     GenerateNucleus();
     calcANL2bodyWeights();
     OutTree -> Fill();
@@ -44,8 +43,8 @@ void NucleiFromANL::SimulateNucleusSnapshot(){
 void NucleiFromANL::InitOutputTree(){
     
     // Integer branches
-    OutTree -> Branch("Nucleus"         , &Nucleus); // nucleus
-    
+    OutTree -> Branch("Nucleus"         ,"nucleus"       ,&Nucleus);
+
     OutTree -> Branch("ANLppKS"         , &ANLppKS          , "ANLppKS/F");
     OutTree -> Branch("ANLnnKS"         , &ANLnnKS          , "ANLnnKS/F");
     OutTree -> Branch("ANLpnKS"         , &ANLpnKS          , "ANLpnKS/F");
@@ -72,7 +71,6 @@ void NucleiFromANL::GenerateNucleus(){
         Nucleus.AddNucleon( N );
     }
     SetNpairs();
-    
 }
 
 

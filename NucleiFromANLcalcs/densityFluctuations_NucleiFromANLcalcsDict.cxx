@@ -84,6 +84,96 @@ namespace ROOT {
 } // end of namespace ROOT
 
 namespace ROOT {
+   static TClass *nucleus_Dictionary();
+   static void nucleus_TClassManip(TClass*);
+   static void *new_nucleus(void *p = 0);
+   static void *newArray_nucleus(Long_t size, void *p);
+   static void delete_nucleus(void *p);
+   static void deleteArray_nucleus(void *p);
+   static void destruct_nucleus(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const ::nucleus*)
+   {
+      ::nucleus *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(::nucleus));
+      static ::ROOT::TGenericClassInfo 
+         instance("nucleus", "nucleus.h", 25,
+                  typeid(::nucleus), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &nucleus_Dictionary, isa_proxy, 4,
+                  sizeof(::nucleus) );
+      instance.SetNew(&new_nucleus);
+      instance.SetNewArray(&newArray_nucleus);
+      instance.SetDelete(&delete_nucleus);
+      instance.SetDeleteArray(&deleteArray_nucleus);
+      instance.SetDestructor(&destruct_nucleus);
+      return &instance;
+   }
+   TGenericClassInfo *GenerateInitInstance(const ::nucleus*)
+   {
+      return GenerateInitInstanceLocal((::nucleus*)0);
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_(Init) = GenerateInitInstanceLocal((const ::nucleus*)0x0); R__UseDummy(_R__UNIQUE_(Init));
+
+   // Dictionary for non-ClassDef classes
+   static TClass *nucleus_Dictionary() {
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const ::nucleus*)0x0)->GetClass();
+      nucleus_TClassManip(theClass);
+   return theClass;
+   }
+
+   static void nucleus_TClassManip(TClass* ){
+   }
+
+} // end of namespace ROOT
+
+namespace ROOT {
+   static TClass *nucleon_Dictionary();
+   static void nucleon_TClassManip(TClass*);
+   static void *new_nucleon(void *p = 0);
+   static void *newArray_nucleon(Long_t size, void *p);
+   static void delete_nucleon(void *p);
+   static void deleteArray_nucleon(void *p);
+   static void destruct_nucleon(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const ::nucleon*)
+   {
+      ::nucleon *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(::nucleon));
+      static ::ROOT::TGenericClassInfo 
+         instance("nucleon", "nucleon.h", 26,
+                  typeid(::nucleon), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &nucleon_Dictionary, isa_proxy, 4,
+                  sizeof(::nucleon) );
+      instance.SetNew(&new_nucleon);
+      instance.SetNewArray(&newArray_nucleon);
+      instance.SetDelete(&delete_nucleon);
+      instance.SetDeleteArray(&deleteArray_nucleon);
+      instance.SetDestructor(&destruct_nucleon);
+      return &instance;
+   }
+   TGenericClassInfo *GenerateInitInstance(const ::nucleon*)
+   {
+      return GenerateInitInstanceLocal((::nucleon*)0);
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_(Init) = GenerateInitInstanceLocal((const ::nucleon*)0x0); R__UseDummy(_R__UNIQUE_(Init));
+
+   // Dictionary for non-ClassDef classes
+   static TClass *nucleon_Dictionary() {
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const ::nucleon*)0x0)->GetClass();
+      nucleon_TClassManip(theClass);
+   return theClass;
+   }
+
+   static void nucleon_TClassManip(TClass* ){
+   }
+
+} // end of namespace ROOT
+
+namespace ROOT {
    // Wrapper around operator delete
    static void delete_NucleiFromANL(void *p) {
       delete ((::NucleiFromANL*)p);
@@ -96,6 +186,111 @@ namespace ROOT {
       ((current_t*)p)->~current_t();
    }
 } // end of namespace ROOT for class ::NucleiFromANL
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_nucleus(void *p) {
+      return  p ? new(p) ::nucleus : new ::nucleus;
+   }
+   static void *newArray_nucleus(Long_t nElements, void *p) {
+      return p ? new(p) ::nucleus[nElements] : new ::nucleus[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_nucleus(void *p) {
+      delete ((::nucleus*)p);
+   }
+   static void deleteArray_nucleus(void *p) {
+      delete [] ((::nucleus*)p);
+   }
+   static void destruct_nucleus(void *p) {
+      typedef ::nucleus current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class ::nucleus
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_nucleon(void *p) {
+      return  p ? new(p) ::nucleon : new ::nucleon;
+   }
+   static void *newArray_nucleon(Long_t nElements, void *p) {
+      return p ? new(p) ::nucleon[nElements] : new ::nucleon[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_nucleon(void *p) {
+      delete ((::nucleon*)p);
+   }
+   static void deleteArray_nucleon(void *p) {
+      delete [] ((::nucleon*)p);
+   }
+   static void destruct_nucleon(void *p) {
+      typedef ::nucleon current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class ::nucleon
+
+namespace ROOT {
+   static TClass *vectorlEnucleongR_Dictionary();
+   static void vectorlEnucleongR_TClassManip(TClass*);
+   static void *new_vectorlEnucleongR(void *p = 0);
+   static void *newArray_vectorlEnucleongR(Long_t size, void *p);
+   static void delete_vectorlEnucleongR(void *p);
+   static void deleteArray_vectorlEnucleongR(void *p);
+   static void destruct_vectorlEnucleongR(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const vector<nucleon>*)
+   {
+      vector<nucleon> *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<nucleon>));
+      static ::ROOT::TGenericClassInfo 
+         instance("vector<nucleon>", -2, "vector", 477,
+                  typeid(vector<nucleon>), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &vectorlEnucleongR_Dictionary, isa_proxy, 0,
+                  sizeof(vector<nucleon>) );
+      instance.SetNew(&new_vectorlEnucleongR);
+      instance.SetNewArray(&newArray_vectorlEnucleongR);
+      instance.SetDelete(&delete_vectorlEnucleongR);
+      instance.SetDeleteArray(&deleteArray_vectorlEnucleongR);
+      instance.SetDestructor(&destruct_vectorlEnucleongR);
+      instance.AdoptCollectionProxyInfo(TCollectionProxyInfo::Generate(TCollectionProxyInfo::Pushback< vector<nucleon> >()));
+      return &instance;
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_(Init) = GenerateInitInstanceLocal((const vector<nucleon>*)0x0); R__UseDummy(_R__UNIQUE_(Init));
+
+   // Dictionary for non-ClassDef classes
+   static TClass *vectorlEnucleongR_Dictionary() {
+      TClass* theClass =::ROOT::GenerateInitInstanceLocal((const vector<nucleon>*)0x0)->GetClass();
+      vectorlEnucleongR_TClassManip(theClass);
+   return theClass;
+   }
+
+   static void vectorlEnucleongR_TClassManip(TClass* ){
+   }
+
+} // end of namespace ROOT
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_vectorlEnucleongR(void *p) {
+      return  p ? ::new((::ROOT::Internal::TOperatorNewHelper*)p) vector<nucleon> : new vector<nucleon>;
+   }
+   static void *newArray_vectorlEnucleongR(Long_t nElements, void *p) {
+      return p ? ::new((::ROOT::Internal::TOperatorNewHelper*)p) vector<nucleon>[nElements] : new vector<nucleon>[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_vectorlEnucleongR(void *p) {
+      delete ((vector<nucleon>*)p);
+   }
+   static void deleteArray_vectorlEnucleongR(void *p) {
+      delete [] ((vector<nucleon>*)p);
+   }
+   static void destruct_vectorlEnucleongR(void *p) {
+      typedef vector<nucleon> current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class vector<nucleon>
 
 namespace ROOT {
    static TClass *vectorlEfloatgR_Dictionary();
@@ -310,6 +505,8 @@ namespace std{inline namespace __1{template <class _Tp> class __attribute__((ann
 }}
 class __attribute__((annotate("$clingAutoload$NucleiFromANL.h")))  TLorentzVector;
 class __attribute__((annotate("$clingAutoload$NucleiFromANL.h")))  NucleiFromANL;
+class __attribute__((annotate("$clingAutoload$NucleiFromANL.h")))  nucleus;
+class __attribute__((annotate("$clingAutoload$NucleiFromANL.h")))  nucleon;
 )DICTFWDDCLS";
     static const char* payloadCode = R"DICTPAYLOAD(
 #line 1 "libdensityFluctuations_NucleiFromANLcalcs dictionary payload"
@@ -325,6 +522,8 @@ class __attribute__((annotate("$clingAutoload$NucleiFromANL.h")))  NucleiFromANL
 )DICTPAYLOAD";
     static const char* classesHeaders[]={
 "NucleiFromANL", payloadCode, "@",
+"nucleon", payloadCode, "@",
+"nucleus", payloadCode, "@",
 nullptr};
 
     static bool isInitialized = false;
