@@ -11,7 +11,6 @@ Nucleus(nucleus( "B" , 10 )){
     
     SetOutTree(fOutTree);
     SetDebug(fdebug);
-    SetNpairs();
     InitOutputTree();
 
     analysis = new TAnalysis();
@@ -26,16 +25,16 @@ void NucleiFromANL::SetNpairs(){
     NppPairs = Nucleus.GetNppPairs();
     NnnPairs = Nucleus.GetNnnPairs();
     NpnPairs = Nucleus.GetNpnPairs();
-    
+    if(debug > 4) SHOW3(Npairs , NppPairs , NpnPairs);
+
 }
 
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void NucleiFromANL::SimulateNucleusSnapshot(){
-    
     GenerateNucleus();
-//    calcANL2bodyWeights();
+    calcANL2bodyWeights();
     OutTree -> Fill();
     
 }
@@ -44,8 +43,8 @@ void NucleiFromANL::SimulateNucleusSnapshot(){
 void NucleiFromANL::InitOutputTree(){
     
     // Integer branches
-    OutTree -> Branch("Nucleus"         , &Nucleus); // nucleus
-    
+    OutTree -> Branch("Nucleus"         ,"nucleus"       ,&Nucleus);
+
     OutTree -> Branch("ANLppKS"         , &ANLppKS          , "ANLppKS/F");
     OutTree -> Branch("ANLnnKS"         , &ANLnnKS          , "ANLnnKS/F");
     OutTree -> Branch("ANLpnKS"         , &ANLpnKS          , "ANLpnKS/F");
@@ -66,20 +65,42 @@ void NucleiFromANL::GenerateNucleus(){
     Nucleus.ClearNucleons();
     for (Int_t i = 0 ; i < 10 ; i++) {
         
-        TVector3 position = ANLnucloenPosition();
         TString type = (i < 5) ? "proton" : "neutron";
+        TVector3 position = ANLnucloenPosition( type );
         N = nucleon( i , type , position );
         Nucleus.AddNucleon( N );
     }
-    
+    SetNpairs();
 }
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-TVector3 NucleiFromANL::ANLnucloenPosition(){
+bool NucleiFromANL::SetANLDensities( TH1F * fANLpDensity , TH1F * fANLnDensity ,
+                                    TH1F * fANLppDensity , TH1F * fANLnnDensity , TH1F * fANLpnDensity ){
+    ANLpDensity  = fANLpDensity;
+    ANLnDensity  = fANLnDensity;
+    ANLppDensity = fANLppDensity;
+    ANLnnDensity = fANLnnDensity;
+    ANLpnDensity = fANLpnDensity;
+
+}
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+TVector3 NucleiFromANL::ANLnucloenPosition( TString type ){
     // genrate the position according to
     // ANL single-body density distribution (charge distribution)
+    r = -9999;
+    if ( type == "proton" ) {
+        r = ANLpDensity -> GetRandom();
+    }
+    else if ( type == "neutron" ) {
+        r = ANLnDensity -> GetRandom();
+    }
+    rand -> Sphere(x,y,z,r);
+    return TVector3(x,y,z);
 }
+
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -100,6 +121,7 @@ Float_t NucleiFromANL::calcANL2bodyWeights(){
     ANLpnKS = KSscore2body ( pnDistances , ANLpnDensity );
     
     // weighted average
+    if(debug > 4) SHOW3(Npairs , NppPairs , NpnPairs);
     ANL2BodyWeight = (ANLppKS*NppPairs + ANLnnKS*NnnPairs + ANLpnKS*NpnPairs)/Npairs;
 }
 

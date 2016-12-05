@@ -37,10 +37,15 @@ public:
     void                SetOutTree (TTree* fOutTree) {OutTree = fOutTree;};
     void                  SetDebug (int d)    {debug = d;};
     void                 SetNpairs ();
+    bool           SetANLDensities ( TH1F * fANLpDensity, TH1F * fANLnDensity,TH1F * fANLppDensity, TH1F * fANLnnDensity, TH1F * fANLpnDensity);
+
+    
+    
+    
     // running
     void   SimulateNucleusSnapshot ();
     void           GenerateNucleus ();
-    TVector3    ANLnucloenPosition ();
+    TVector3    ANLnucloenPosition ( TString );
     Float_t    calcANL2bodyWeights ();
     Float_t           KSscore2body ( std::vector<Float_t> , TH1F * );
     void                     Print ();
@@ -60,12 +65,14 @@ public:
     Float_t     ANLppKS , ANLnnKS   , ANLpnKS   , ANL2BodyWeight;
     std::vector<Float_t> ppDistances , nnDistances , pnDistances;
 
+
+    Double_t    x,  y,  z,  r;
     
     
     
     TRandom3 * rand;
     
-    
+    TH1F * ANLpDensity  , * ANLnDensity;
     TH1F * ANLppDensity , * ANLnnDensity , * ANLpnDensity;
     
     
