@@ -20,7 +20,7 @@ endif
 #
 # Define directories to be compile upon a global "make"...
 #
-SUBDIRS := DensityFluctuationsPackage #ADD_NEW_SUBDIR ... do not remove this comment from this line
+SUBDIRS := DensityFluctuationsPackage NucleiFromANLcalcs MassimoConfigurationsPackage #ADD_NEW_SUBDIR ... do not remove this comment from this line
 
 #####################################################################################
 #
