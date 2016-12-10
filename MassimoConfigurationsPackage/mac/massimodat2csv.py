@@ -1,3 +1,5 @@
+# Dec 2016: deprecated, use calc_masi_configurations.py
+
 import pandas as pd, numpy as np
 from math import sqrt
 

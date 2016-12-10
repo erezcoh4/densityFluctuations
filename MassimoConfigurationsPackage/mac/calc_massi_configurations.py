@@ -1,4 +1,9 @@
-# imports
+'''
+    usage:
+    ---------
+    python mac/calc_massi_configurations.py --option=read -evf=0.0001
+'''
+
 import sys , ROOT
 sys.path.insert(0, '/Users/erezcohen/larlite/UserDev/mySoftware/MySoftwarePackage/mac')
 import input_flags , Initiation as init, GeneralPlot as gp , gc
@@ -8,15 +13,10 @@ flags = input_flags.get_args()
 
 
 
-'''
-    usage:
-    ---------
-    python mac/calc_massi_configurations.py --option=read -evf=0.0001
-'''
 
 nucleus_name , A = 'Pb' , 208
 
-configurations_fname = '%s%d-ico0-skin-10k'%(nucleus_name,A)
+configurations_fname = '%s%d-ico3-skin-10k'%(nucleus_name,A)
 path = '/Users/erezcohen/Desktop/DensityFluctuations'
 
 
