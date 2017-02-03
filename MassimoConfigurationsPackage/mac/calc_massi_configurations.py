@@ -14,9 +14,10 @@ flags = input_flags.get_args()
 
 
 
-nucleus_name , A = 'Pb' , 208
+nucleus_name , A = 'C' , 12
+#configurations_fname = 'Pb208-ico3-skin-10k'
+configurations_fname = 'c12-ico6-10k_rd200'
 
-configurations_fname = '%s%d-ico3-skin-10k'%(nucleus_name,A)
 path = '/Users/erezcohen/Desktop/DensityFluctuations'
 
 
