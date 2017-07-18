@@ -36,21 +36,33 @@ public:
     void                        SetA (int a) {A = a;};
     void              SetNucleusName (TString name) {NucleusName = name;};
     bool ReadMassiConfigurationsFile (TString fInFileName , Int_t MaxNuclei = 10 , Int_t PrintMod = 10 );
-    void                 PrintNuclei ();
+    void                 PrintNuclei (bool DoPrintNucleons=false );
     bool          WriteNucleonsToCSV (TString fOutFileName );
     bool    Write2bodyDistancesToCSV (TString,TString,TString,TString);
     bool        CalcTwoBodyDistances ();
+    bool            InitPairCounting ();
+    bool             CountClosePairs (nucleus Nucleus);
     
     
-    
+    Int_t     GetNppPairsMaxDistance (Float_t distance);
+    Int_t     GetNnnPairsMaxDistance (Float_t distance);
+    Int_t     GetNnpPairsMaxDistance (Float_t distance);
+    Int_t     GetNNNPairsMaxDistance (Float_t distance);
     
     ofstream    outcsvfile;
 
     
-    Int_t       A   , debug ;
-    Int_t       Sz  , Iz    ; // spin & isospin of each nucleon
+    Int_t       A, debug ;
+    Int_t       Sz, Iz    ; // spin & isospin of each nucleon
+    const Int_t  NMaxDistances = 15;
+    Int_t NppPairsMaxDistance[15];
+    Int_t NnnPairsMaxDistance[15];
+    Int_t NnpPairsMaxDistance[15];
+    Int_t NNNPairsMaxDistance[15];
     
-    Float_t     x   , y     , z     , R ;
+    Float_t     x, y, z, R ;
+    const Float_t MaxDistances[15] = {0.0 , 0.5 , 1.0 , 1.5, 2.0 , 2.5 , 3.0 , 3.5 , 4. , 4.5 , 5. , 5.5 , 6. , 6.5 , 7.  }; // max. distance between pairs [fm]
+    
     
     TString     NucleusName;
     

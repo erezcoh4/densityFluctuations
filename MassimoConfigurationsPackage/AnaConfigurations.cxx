@@ -19,8 +19,8 @@ bool AnaConfigurations::ReadMassiConfigurationsFile (TString fInFileName ,
     
     if (debug) Printf("starting to read %d nuclei",MaxNuclei);
     ifstream fin(fInFileName);
-
-
+    
+    
     // Read one line at a time.
     string line;
     Int_t i = 0;
@@ -42,24 +42,25 @@ bool AnaConfigurations::ReadMassiConfigurationsFile (TString fInFileName ,
             i = 0;
             if ( debug && (Nuclei.size()%500==0)) Printf("nucleus number %lu ",Nuclei.size());
             if ( (debug>2) && (Nuclei.size()%PrintMod==0) ) PrintNuclei();
-            if ( Nuclei.size() > MaxNuclei ) return false;
+            if ( Nuclei.size() >= MaxNuclei ) break;
+            //            if ( Nuclei.size() > MaxNuclei ) return false;
         }
-
+        
     }
     
-    Printf("done reading file.");
+    Printf("done reading %d nuclei",Nuclei.size());
     return true;
-
+    
 }
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 bool AnaConfigurations::CalcTwoBodyDistances(){
-
+    
     for ( auto & Nucleus : Nuclei ){
         Nucleus.CalcNNDistances( debug );
-   }
-
+    }
+    
 }
 
 
@@ -68,7 +69,7 @@ bool AnaConfigurations::WriteNucleonsToCSV ( TString fOutFileName ){
     outcsvfile.open(fOutFileName);
     TString CSVHeader = "nucleus_counter,nucleon_counter,x,y,z,R,type";
     outcsvfile << CSVHeader << endl;
-
+    
     Int_t nucleus_counter = 0 , nucleon_counter = 0 ;
     for ( auto & Nucleus : Nuclei ){
         nucleon_counter = 0;
@@ -90,7 +91,7 @@ bool AnaConfigurations::WriteNucleonsToCSV ( TString fOutFileName ){
         
         nucleus_counter ++;
     }
-
+    
     outcsvfile.close();
     Printf("done writing to " + fOutFileName);
     return true;
@@ -98,9 +99,9 @@ bool AnaConfigurations::WriteNucleonsToCSV ( TString fOutFileName ){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 bool AnaConfigurations::Write2bodyDistancesToCSV ( TString fOutFileName_pp
-                                          ,TString fOutFileName_nn
-                                          ,TString fOutFileName_pn
-                                          ,TString fOutFileName_NN){
+                                                  ,TString fOutFileName_nn
+                                                  ,TString fOutFileName_pn
+                                                  ,TString fOutFileName_NN){
     
     ofstream outcsvfile_pp , outcsvfile_nn , outcsvfile_pn , outcsvfile_NN;
     outcsvfile_pp.open(fOutFileName_pp);
@@ -114,7 +115,7 @@ bool AnaConfigurations::Write2bodyDistancesToCSV ( TString fOutFileName_pp
     
     Int_t nucleus_counter = 0 ;
     for ( auto & Nucleus : Nuclei ){
- 
+        
         if( nucleus_counter%100==0 ) Printf("nucleus No. %d",nucleus_counter);
         
         // two-body distances
@@ -134,7 +135,7 @@ bool AnaConfigurations::Write2bodyDistancesToCSV ( TString fOutFileName_pp
         for ( auto & distance : Nucleus.pnDistances ) {
             outcsvfile_pn << nucleus_counter << "," << distance << endl;
         }
-
+        
         nucleus_counter ++;
     }
     
@@ -142,7 +143,7 @@ bool AnaConfigurations::Write2bodyDistancesToCSV ( TString fOutFileName_pp
     outcsvfile_nn.close();
     outcsvfile_pn.close();
     outcsvfile_NN.close();
-
+    
     Printf("done writing 2-body distances from %d nuclei to \n%s\n%s\n%s\n%s"
            , nucleus_counter
            , fOutFileName_pp.Data()
@@ -154,20 +155,119 @@ bool AnaConfigurations::Write2bodyDistancesToCSV ( TString fOutFileName_pp
 
 
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+bool AnaConfigurations::InitPairCounting ( ){
+    //  July , 2017
+    for (int i=0 ; i < NMaxDistances ; i++ ){
+        NppPairsMaxDistance[i] = NnnPairsMaxDistance[i] = 0;
+        NnpPairsMaxDistance[i] = NNNPairsMaxDistance[i] = 0;
+    }
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void AnaConfigurations::PrintNuclei(){
+bool AnaConfigurations::CountClosePairs ( nucleus Nucleus ){
+    //  July , 2017
     
-    for ( auto & Nucleus : Nuclei ){
-        Nucleus.PrintNoNucleons();
-    }
-    
-    if (debug>3) {
-        for ( auto & Nucleus : Nuclei ){
-            Nucleus.Print();
+    // count the number of pairs at distance ≤ MaxDistance
+    for (auto N1: Nucleus.nucleons){
+        for (auto N2: Nucleus.nucleons){
+            if (N2.ID!=N1.ID){
+                // count the number of pairs at multiple distances
+                for (int i=0 ; i < NMaxDistances ; i++ ){
+                    if ( ( N1.position - N2.position ).Mag() <= MaxDistances[i] ){
+                        
+                        NNNPairsMaxDistance[i]++;
+                        
+                        if ( N1.type=="proton" && N2.type=="proton" ){
+                            NppPairsMaxDistance[i]++;
+                        }
+                        else if ( N1.type=="neutron" && N2.type=="neutron" ){
+                            NnnPairsMaxDistance[i]++;
+                        }
+                        else { // np - pair
+                            NnpPairsMaxDistance[i]++;
+                        }
+                        
+                    }
+                }
+            }
         }
     }
+    for (int i=0 ; i < NMaxDistances ; i++ ){
+        NppPairsMaxDistance[i] /= 2;
+        NnnPairsMaxDistance[i] /= 2;
+        NnpPairsMaxDistance[i] /= 2;
+        NNNPairsMaxDistance[i] /= 2;
+    }
+}
+
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+Int_t AnaConfigurations::GetNppPairsMaxDistance (Float_t distance){
+    //  July , 2017
+    for (int i=0 ; i < NMaxDistances ; i++ ){
+        if (distance==MaxDistances[i]){
+            return NppPairsMaxDistance[i];
+        }
+    }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+Int_t AnaConfigurations::GetNnnPairsMaxDistance (Float_t distance){
+    //  July , 2017
+    for (int i=0 ; i < NMaxDistances ; i++ ){
+        if (distance==MaxDistances[i]){
+            return NnnPairsMaxDistance[i];
+        }
+    }
+}
+
+
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+Int_t AnaConfigurations::GetNnpPairsMaxDistance (Float_t distance){
+    //  July , 2017
+    for (int i=0 ; i < NMaxDistances ; i++ ){
+        if (distance==MaxDistances[i]){
+            return NnpPairsMaxDistance[i];
+        }
+    }
+}
+
+
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+Int_t AnaConfigurations::GetNNNPairsMaxDistance (Float_t distance){
+    //  July , 2017
+    for (int i=0 ; i < NMaxDistances ; i++ ){
+        if (distance==MaxDistances[i]){
+            return NNNPairsMaxDistance[i];
+        }
+    }
+}
+
+
+
+
+
+
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void AnaConfigurations::PrintNuclei( bool DoPrintNucleons ){
     
+    SHOW(Nuclei.size());
+    for ( auto & Nucleus : Nuclei ){
+        if (DoPrintNucleons){
+            Nucleus.Print();
+        }
+        else{
+            Nucleus.PrintNoNucleons();
+        }
+    }
 }
 
 
