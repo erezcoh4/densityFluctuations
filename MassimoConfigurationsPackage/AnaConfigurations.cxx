@@ -253,7 +253,117 @@ Int_t AnaConfigurations::GetNNNPairsMaxDistance (Float_t distance){
 
 
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+bool AnaConfigurations::FixNulceusCM (nucleus Nucleus, Int_t debug ){
+    // July-18,2017
+    // put the c.m. of the nucleus at (0,0,0)
+    TVector3 Rcm = TVector3();
+    pDistancesCenter.clear();
+    nDistancesCenter.clear();
+    NDistancesCenter.clear();
+    
+    for (auto N:Nucleus.nucleons){
+        Rcm += N.position ;
+    }
+    Rcm = (1./Nucleus.nucleons.size())*Rcm ;
+    if (debug > 2) {
+        cout<<"before fixing c.m."<<endl; SHOWTVector3(Rcm);
+        Nucleus.Print();
+    }
+    for (auto & N:Nucleus.nucleons){
+        N.SetPosition ( N.position - Rcm );
+        NDistancesCenter.push_back(N.position.Mag());
+        if ( N.type == "proton" ){
+            pDistancesCenter.push_back(N.position.Mag());
+        }
+        else if ( N.type == "neutron" ){
+            nDistancesCenter.push_back(N.position.Mag());
+        }
+    }
+    
+    if (debug > 2) {
+        Rcm = TVector3();
+        for (auto N:Nucleus.nucleons){
+            Rcm += N.position;
+        }
+        cout<<"after fixing c.m."<<endl; SHOWTVector3(Rcm);
+        Nucleus.Print();
+    }
+    
+}
 
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+bool AnaConfigurations::FindClosePairs (nucleus Nucleus, Float_t dNN_max ){
+    // July-18,2017
+    // find close pairs at distance < dNN_max in a given nucleus
+    // count the number of pairs at distance ≤ MaxDistance
+    PairsMaxDistancesFromCenter = dNN_max;
+    
+    NNPairsDistancesFromCenter.clear();
+    ppPairsDistancesFromCenter.clear();
+    nnPairsDistancesFromCenter.clear();
+    npPairsDistancesFromCenter.clear();
+    
+    for (auto N1: Nucleus.nucleons){
+        for (auto N2: Nucleus.nucleons){
+            // We are counting twice every pair here,
+            // but its not a problem since we don't care about normalization
+            // only about the shape of the distributions
+            if (N2.ID!=N1.ID){
+                // count the number of pairs at multiple distances
+                if ( ( N1.position - N2.position ).Mag() <= dNN_max ){
+                    
+                    // if we fixed the c.m. of the nucleus in (0,0,0),
+                    // then the distance for the pair from the center
+                    // of the nucleus is just the position of the pair c.m.
+                    Float_t DistancesFromCenter = ( N1.position + N2.position ).Mag();
+                    
+                    NNPairsDistancesFromCenter.push_back( DistancesFromCenter );
+                    
+                    if ( N1.type=="proton" && N2.type=="proton" ){
+                        ppPairsDistancesFromCenter.push_back( DistancesFromCenter );
+                    }
+                    else if ( N1.type=="neutron" && N2.type=="neutron" ){
+                        nnPairsDistancesFromCenter.push_back( DistancesFromCenter );
+                    }
+                    else { // np - pair
+                        npPairsDistancesFromCenter.push_back( DistancesFromCenter );
+                    }
+                }
+            }
+        }
+    }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+std::vector<Float_t> AnaConfigurations::GetNucleonsDistance ( std::string pair_type){
+    if ( pair_type == "proton" ){
+        return pDistancesCenter;
+    }
+    else if ( pair_type == "neutron" ){
+        return nDistancesCenter;
+    }
+    else if ( pair_type == "Nucleon" ){
+        return NDistancesCenter;
+    }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+std::vector<Float_t> AnaConfigurations::GetDistanceClosePairs (std::string pair_type){
+    if (pair_type=="pp"){
+        return ppPairsDistancesFromCenter;
+    }
+    else if (pair_type=="nn"){
+        return nnPairsDistancesFromCenter;
+    }
+    else if (pair_type=="np"){
+        return npPairsDistancesFromCenter;
+    }
+    else if (pair_type=="NN"){
+        return NNPairsDistancesFromCenter;
+    }
+}
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
