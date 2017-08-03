@@ -48,7 +48,7 @@ bool AnaConfigurations::ReadMassiConfigurationsFile (TString fInFileName ,
         
     }
     
-    Printf("done reading %d nuclei",Nuclei.size());
+    Printf("done reading %lu nuclei",Nuclei.size());
     return true;
     
 }
@@ -60,7 +60,7 @@ bool AnaConfigurations::CalcTwoBodyDistances(){
     for ( auto & Nucleus : Nuclei ){
         Nucleus.CalcNNDistances( debug );
     }
-    
+    return true;
 }
 
 
@@ -93,7 +93,7 @@ bool AnaConfigurations::WriteNucleonsToCSV ( TString fOutFileName ){
     }
     
     outcsvfile.close();
-    Printf("done writing to " + fOutFileName);
+    cout << "done writing to " <<  fOutFileName << endl;
     return true;
 }
 
@@ -162,6 +162,7 @@ bool AnaConfigurations::InitPairCounting ( ){
         NppPairsMaxDistance[i] = NnnPairsMaxDistance[i] = 0;
         NnpPairsMaxDistance[i] = NNNPairsMaxDistance[i] = 0;
     }
+    return true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -199,6 +200,7 @@ bool AnaConfigurations::CountClosePairs ( nucleus Nucleus ){
         NnpPairsMaxDistance[i] /= 2;
         NNNPairsMaxDistance[i] /= 2;
     }
+    return true;
 }
 
 
@@ -211,6 +213,7 @@ Int_t AnaConfigurations::GetNppPairsMaxDistance (Float_t distance){
             return NppPairsMaxDistance[i];
         }
     }
+    return 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -221,6 +224,7 @@ Int_t AnaConfigurations::GetNnnPairsMaxDistance (Float_t distance){
             return NnnPairsMaxDistance[i];
         }
     }
+    return 0;
 }
 
 
@@ -234,6 +238,7 @@ Int_t AnaConfigurations::GetNnpPairsMaxDistance (Float_t distance){
             return NnpPairsMaxDistance[i];
         }
     }
+    return 0;
 }
 
 
@@ -247,10 +252,66 @@ Int_t AnaConfigurations::GetNNNPairsMaxDistance (Float_t distance){
             return NNNPairsMaxDistance[i];
         }
     }
+    return 0;
 }
 
 
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+bool AnaConfigurations::CalcNNdistances( nucleus Nucleus ){
+    
+    ppDistances.clear();
+    nnDistances.clear();
+    npDistances.clear();
+    NNDistances.clear();
+    
+    
+    // calc the number of pairs at multiple distances
+    // to prevent from counting twice, we use standard for loops
+    for (size_t i1=0 ; i1 < Nucleus.nucleons.size() ; i1++){
+        auto N1 = Nucleus.nucleons.at(i1);
+        for (size_t i2=i1+1 ; i2 < Nucleus.nucleons.size() ; i2++){
+            auto N2 = Nucleus.nucleons.at(i2);
+            
+            float d_NN = ( N1.position - N2.position ).Mag();
+            NNDistances.push_back(d_NN);
+            
+            
+            if ( N1.type=="proton" && N2.type=="proton" ){
+                ppDistances.push_back(d_NN);
+            }
+            else if ( N1.type=="neutron" && N2.type=="neutron" ){
+                nnDistances.push_back(d_NN);
+            }
+            else { // np - pair
+                npDistances.push_back(d_NN);
+            }
+            
+        }
+    }
+    return true;
+}
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+std::vector<Float_t> AnaConfigurations::GetNNDistances ( std::string pair_type){
+    // Aug-3,2017
+    // get the NN-distances array of one of the following options:
+    // pp nn np NN
+    if ( pair_type == "pp" ){
+        return ppDistances;
+    }
+    else if ( pair_type == "nn" ){
+        return nnDistances;
+    }
+    else if ( pair_type == "np" || pair_type == "pn" ){
+        return npDistances;
+    }
+    else if ( pair_type == "NN" ){
+        return nnDistances;
+    }
+    return {0};
+}
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -289,7 +350,7 @@ bool AnaConfigurations::FixNulceusCM (nucleus Nucleus, Int_t debug ){
         cout<<"after fixing c.m."<<endl; SHOWTVector3(Rcm);
         Nucleus.Print();
     }
-    
+    return true;
 }
 
 
@@ -317,7 +378,8 @@ bool AnaConfigurations::FindClosePairs (nucleus Nucleus, Float_t dNN_max ){
                     // if we fixed the c.m. of the nucleus in (0,0,0),
                     // then the distance for the pair from the center
                     // of the nucleus is just the position of the pair c.m.
-                    Float_t DistancesFromCenter = ( N1.position + N2.position ).Mag();
+                    TVector3 RcmPair =  0.5*(N1.position + N2.position);
+                    Float_t DistancesFromCenter = ( RcmPair ).Mag();
                     
                     NNPairsDistancesFromCenter.push_back( DistancesFromCenter );
                     
@@ -334,6 +396,7 @@ bool AnaConfigurations::FindClosePairs (nucleus Nucleus, Float_t dNN_max ){
             }
         }
     }
+    return true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -347,6 +410,7 @@ std::vector<Float_t> AnaConfigurations::GetNucleonsDistance ( std::string pair_t
     else if ( pair_type == "Nucleon" ){
         return NDistancesCenter;
     }
+    return {0};
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -363,6 +427,7 @@ std::vector<Float_t> AnaConfigurations::GetDistanceClosePairs (std::string pair_
     else if (pair_type=="NN"){
         return NNPairsDistancesFromCenter;
     }
+    return {0};
 }
 
 
