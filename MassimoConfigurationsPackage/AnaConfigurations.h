@@ -56,7 +56,7 @@ public:
     
     
     std::vector<Float_t> GetDistanceClosePairs (std::string pair_type);
-    std::vector<Float_t>   GetNucleonsDistance (std::string paritcle_type);
+    std::vector<Float_t>   GetNucleonsDistance (std::string particle_type);
     std::vector<Float_t>        GetNNDistances (std::string pair_type);
     
     

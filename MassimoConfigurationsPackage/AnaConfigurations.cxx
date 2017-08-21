@@ -270,6 +270,7 @@ bool AnaConfigurations::CalcNNdistances( nucleus Nucleus ){
     // to prevent from counting twice, we use standard for loops
     for (size_t i1=0 ; i1 < Nucleus.nucleons.size() ; i1++){
         auto N1 = Nucleus.nucleons.at(i1);
+        
         for (size_t i2=i1+1 ; i2 < Nucleus.nucleons.size() ; i2++){
             auto N2 = Nucleus.nucleons.at(i2);
             
@@ -277,10 +278,10 @@ bool AnaConfigurations::CalcNNdistances( nucleus Nucleus ){
             NNDistances.push_back(d_NN);
             
             
-            if ( N1.type=="proton" && N2.type=="proton" ){
+            if ( N1.type == "proton" && N2.type == "proton" ){
                 ppDistances.push_back(d_NN);
             }
-            else if ( N1.type=="neutron" && N2.type=="neutron" ){
+            else if ( N1.type == "neutron" && N2.type == "neutron" ){
                 nnDistances.push_back(d_NN);
             }
             else { // np - pair
@@ -294,7 +295,7 @@ bool AnaConfigurations::CalcNNdistances( nucleus Nucleus ){
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-std::vector<Float_t> AnaConfigurations::GetNNDistances ( std::string pair_type){
+std::vector<Float_t> AnaConfigurations::GetNNDistances ( std::string pair_type ){
     // Aug-3,2017
     // get the NN-distances array of one of the following options:
     // pp nn np NN
@@ -308,7 +309,7 @@ std::vector<Float_t> AnaConfigurations::GetNNDistances ( std::string pair_type){
         return npDistances;
     }
     else if ( pair_type == "NN" ){
-        return nnDistances;
+        return NNDistances;
     }
     return {0};
 }
