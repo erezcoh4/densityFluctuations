@@ -1,29 +1,26 @@
 '''
     usage:
     ---------
-    python mac/close_pairs.py --option=1fm_pairs_distance -evf=0.0001
-    make && python mac/close_pairs.py --option=count_pairs -evf=0.0001
+    (make && )
+    python mac/close_pairs.py --option=1fm_pairs_distance --DataType=correlations -evf=0.0001
+    python mac/close_pairs.py --option=count_pairs --DataType=correlations -evf=0.0001
+    
+    DataTypes: "correlations" / "no-correlations"
+
 '''
 
-import sys , ROOT
-sys.path.insert(0, '/Users/erezcohen/larlite/UserDev/mySoftware/MySoftwarePackage/mac')
-import input_flags , Initiation as init, GeneralPlot as gp , gc, pandas as pd
-from ROOT import nucleon , nucleus , AnaConfigurations
-from my_tools import *
-flags = input_flags.get_args()
-
-
+from configurations_tools import *
 
 
 hyperparameters = dict({'path':'/Users/erezcohen/Desktop/DensityFluctuations'
-                       ,'configurations file-name':'c12-ico0-50k'
-                       # 'c12-ico6-10k_rd200' carbon correlated configurations, 10k samples
-                       # 'c12-ico0-50k' carbon non-correlated configurations, 50k samples
-                       # 'Pb208-ico3-skin-10k' lead correlated configurations, 10k samples
-                       # 'Pb208-ico0-skin-10k' lead non-correlated configurations, 10k samples
-                       ,'nucleus name':'C' #'C'
-                       ,'A':12 #12
+                       ,'corr. flag':flags.DataType
+                       ,'nucleus':'C'
+                       ,'A':12
                        ,'do print nucleons':False})
+
+configuration_name = "%d%s"%(hyperparameters['A'],hyperparameters['nucleus'])+'/'+hyperparameters['corr. flag']
+hyperparameters['configurations file-name'] = sample_filnames[configuration_name]
+
 
 # input: Massimo dat file
 in_file_name = hyperparameters['path'] + '/massi/' + hyperparameters['configurations file-name'] + '.dat'
@@ -31,10 +28,9 @@ print_filename(in_file_name,"input file")
 # output: a csv file
 out_file_name = hyperparameters['path'] + '/anafiles/' + hyperparameters['configurations file-name'] + '_' + flags.option  + '.csv'
 print_filename(out_file_name,"out file")
-if os.path.exists(out_file_name):
-    os.remove(out_file_name)
+if os.path.exists(out_file_name):    os.remove(out_file_name)
 print_important('running option ' + flags.option)
-ana = AnaConfigurations ( hyperparameters['nucleus name'] , hyperparameters['A'] , flags.verbose )
+ana = AnaConfigurations ( hyperparameters['nucleus'] , hyperparameters['A'] , flags.verbose )
 ana.ReadMassiConfigurationsFile( in_file_name , int(flags.evnts_frac*10000) , flags.print_mod )
 
 
